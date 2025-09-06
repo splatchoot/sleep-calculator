@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sleep Calculator</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🛏️</text></svg>">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #f5f5f5;
+      color: #333;
+      transition: background 0.5s ease, color 0.5s ease;
+    }
+    body.dark-mode {
+      background: #1e1e1e;
+      color: #f5f5f5;
+    }
+    .calculator {
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      text-align: center;
+      width: 340px;
+      transition: background 0.5s ease, color 0.5s ease;
+    }
+    body.dark-mode .calculator {
+      background: #2a2a2a;
+      color: #f5f5f5;
+    }
+    h2 {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+    select, input[type="time"] {
+      padding: 8px;
+      margin: 6px 0 15px;
+      font-size: 1rem;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      transition: background 0.5s ease, color 0.5s ease, border 0.3s;
+    }
+    body.dark-mode select,
+    body.dark-mode input[type="time"] {
+      background: #3a3a3a;
+      color: #f5f5f5;
+      border: 1px solid #555;
+    }
+    .result {
+      margin-top: 15px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      transition: opacity 0.5s, transform 0.5s;
+    }
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 60px;
+      height: 28px;
+      background: #ccc;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: background 0.4s;
+    }
+    .toggle-switch::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.4s;
+    }
+    body.dark-mode .toggle-switch {
+      background: #4a90e2;
+    }
+    body.dark-mode .toggle-switch::after {
+      transform: translateX(32px);
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <h2>Sleep Calculator</h2>
+
+    <div class="theme-toggle">
+      <label for="themeSwitch">Theme:</label>
+      <div id="themeSwitch" class="toggle-switch"></div>
+    </div>
+
+    <label for="mode">Choose mode:</label>
+    <select id="mode">
+      <option value="sleep">I know when I go to sleep → show wake-up time</option>
+      <option value="wake">I know when I wake up → show bedtime</option>
+    </select>
+
+    <label for="duration">Sleep duration:</label>
+    <select id="duration">
+      <option value="7">7 hours</option>
+      <option value="7.5">7.5 hours</option>
+      <option value="8" selected>8 hours</option>
+      <option value="8.5">8.5 hours</option>
+      <option value="9">9 hours</option>
+      <option value="9.5">9.5 hours</option>
+      <option value="10">10 hours</option>
+    </select>
+
+    <label for="timeInput" id="timeLabel">Enter bedtime:</label>
+    <input type="time" id="timeInput">
+
+    <div class="result" id="result">Result: --:--</div>
+  </div>
+
+  <script>
+    const modeSelect = document.getElementById('mode');
+    const durationSelect = document.getElementById('duration');
+    const timeInput = document.getElementById('timeInput');
+    const timeLabel = document.getElementById('timeLabel');
+    const resultDisplay = document.getElementById('result');
+    const themeSwitch = document.getElementById('themeSwitch');
+
+    function calculate() {
+      const time = timeInput.value;
+      if (!time) {
+        resultDisplay.textContent = 'Result: --:--';
+        return;
+      }
+
+      const [hours, minutes] = time.split(':').map(Number);
+      const baseDate = new Date();
+      baseDate.setHours(hours);
+      baseDate.setMinutes(minutes);
+
+      const duration = parseFloat(durationSelect.value);
+
+      if (modeSelect.value === 'sleep') {
+        baseDate.setMinutes(baseDate.getMinutes() + duration * 60);
+        const h = String(baseDate.getHours()).padStart(2,'0');
+        const m = String(baseDate.getMinutes()).padStart(2,'0');
+        resultDisplay.textContent = `Wake-up time: ${h}:${m}`;
+      } else {
+        baseDate.setMinutes(baseDate.getMinutes() - duration * 60);
+        const h = String(baseDate.getHours()).padStart(2,'0');
+        const m = String(baseDate.getMinutes()).padStart(2,'0');
+        resultDisplay.textContent = `Bedtime: ${h}:${m}`;
+      }
+    }
+
+    modeSelect.addEventListener('change', () => {
+      if (modeSelect.value === 'sleep') {
+        timeLabel.textContent = 'Enter bedtime:';
+      } else {
+        timeLabel.textContent = 'Enter wake-up time:';
+      }
+      calculate();
+    });
+
+    timeInput.addEventListener('input', calculate);
+    durationSelect.addEventListener('change', calculate);
+
+    themeSwitch.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    });
+
+    window.onload = () => {
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+      }
+    };
+  </script>
+</body>
+</html>
